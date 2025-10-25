@@ -49,6 +49,19 @@ export default function Page() {
     }
   }
 
+  async function loginWithAuth0() {
+    try {
+      await account.createOAuth2Session({
+        provider: "auth0",
+        success: `${process.env.NEXT_PUBLIC_APP_URL!}`,
+        failure: `${process.env.NEXT_PUBLIC_APP_URL!}`,
+        scopes: ["openid", "profile", "email"],
+      });
+    } catch (e: any) {
+      setError(e.message ?? "Auth 0 login failed");
+    }
+  }
+
   async function logout() {
     await account.deleteSession("current");
     setuser(null);
@@ -81,6 +94,12 @@ export default function Page() {
           />
           <button onClick={login} style={{ padding: 8 }}>
             Login
+          </button>
+          <div style={{ textAlign: "center", color: "#666", margin: "8px 0" }}>
+            - or -
+          </div>
+          <button onClick={loginWithAuth0} style={{ padding: 8 }}>
+            Login with Auth0
           </button>
           {error && <p style={{ color: "red" }}>{error}</p>}
         </main>
@@ -164,33 +183,43 @@ export default function Page() {
           ></input>
           <button onClick={add}>Add</button>
         </div>
-        <button onClick={logout}>Logout</button>
-        <table>
-          <thead>
-            <tr>
-              <td>Student Number</td>
-              <td>First Name</td>
-              <td>Last Name</td>
-              <td>Section</td>
-              <td>Grade Level</td>
-              <td></td>
-            </tr>
-          </thead>
-          <tbody>
-            {students.map((student) => (
-              <tr key={student.$id}>
-                <td>{student.StudentNumber}</td>
-                <td>{student.FirstName}</td>
-                <td>{student.LastName}</td>
-                <td>{student.Section}</td>
-                <td>{student.GradeLevel}</td>
-                <td>
-                  <button onClick={() => remove(student.$id)}>Delete</button>
-                </td>
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <button onClick={logout}>Logout</button>
+          <span style={{ color: "#666" }}>Logged in as {user?.email}</span>
+        </div>
+
+        {loading ? (
+          <p>Loading...</p>
+        ) : error ? (
+          <p style={{ color: "red" }}> {error}</p>
+        ) : (
+          <table>
+            <thead>
+              <tr>
+                <td>Student Number</td>
+                <td>First Name</td>
+                <td>Last Name</td>
+                <td>Section</td>
+                <td>Grade Level</td>
+                <td></td>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {students.map((student) => (
+                <tr key={student.$id}>
+                  <td>{student.StudentNumber}</td>
+                  <td>{student.FirstName}</td>
+                  <td>{student.LastName}</td>
+                  <td>{student.Section}</td>
+                  <td>{student.GradeLevel}</td>
+                  <td>
+                    <button onClick={() => remove(student.$id)}>Delete</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </main>
     </>
   );
